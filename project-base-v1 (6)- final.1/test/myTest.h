@@ -1,0 +1,106 @@
+//
+// Created by os on 2/13/23.
+//
+
+#ifndef PROJECT_BASE_V1_5_1_MYTEST_H
+#define PROJECT_BASE_V1_5_1_MYTEST_H
+
+#include "../h/syscall_cpp.hpp"
+
+#include "printing.hpp"
+
+bool finishedA = false;
+bool finishedB = false;
+bool finishedC = false;
+
+class WorkerA: public Thread {
+    void workerBodyA(void* arg);
+public:
+    WorkerA():Thread() {}
+
+    void run() override {
+        workerBodyA(nullptr);
+    }
+};
+
+class WorkerB: public Thread {
+    void workerBodyB(void* arg);
+public:
+    WorkerB():Thread() {}
+
+    void run() override {
+        workerBodyB(nullptr);
+    }
+};
+
+class WorkerC: public Thread {
+    void workerBodyC(void* arg);
+public:
+    WorkerC():Thread() {}
+
+    void run() override {
+        workerBodyC(nullptr);
+    }
+};
+
+
+void WorkerA::workerBodyA(void *arg) {
+    for (uint64 i = 0; i < 10; i++) {
+        printString( "- IdA -");
+        printString("\n");
+        printInt(getThreadId());
+    }
+    printString("A finished!\n");
+    finishedA = true;
+    thread_dispatch();
+}
+
+void WorkerB::workerBodyB(void *arg) {for (uint64 i = 0; i < 10; i++) {
+        printString( "- IdB -");
+        printString("\n");
+        printInt(getThreadId());
+    }
+    printString("B finished!\n");
+    finishedB = true;
+    thread_dispatch();
+}
+
+void WorkerC::workerBodyC(void *arg) {
+    for (uint64 i = 0; i < 10; i++) {
+        printString( "- IdC -");
+        printString("\n");
+        printInt(getThreadId());
+    }
+    printString("C finished!\n");
+    finishedC = true;
+    thread_dispatch();
+}
+
+
+
+void myTest() {
+    Thread* threads[3];
+
+    threads[0] = new WorkerA();
+    printString("ThreadA created\n");
+
+    threads[1] = new WorkerB();
+    printString("ThreadB created\n");
+
+    threads[2] = new WorkerC();
+    printString("ThreadC created\n");
+
+
+    for(int i=0; i<3; i++) {
+        threads[i]->start();
+    }
+
+    while (!(finishedA && finishedB && finishedC)) {
+        Thread::dispatch();
+    }
+
+    for (auto thread: threads) { delete thread; }
+}
+
+
+#endif //PROJECT_BASE_V1_5_1_MYTEST_H
